@@ -426,6 +426,10 @@ static int check_pixel( int cpu_ref, int cpu_new )
         }
     report( "pixel hadamard_ac :" );
 
+    // maximize sum
+    for( int i = 0; i < 32; i++ )
+        for( int j = 0; j < 16; j++ )
+            pbuf4[16*i+j] = -((i+j)&1) & PIXEL_MAX;
     ok = 1; used_asm = 0;
     if( pixel_asm.vsad != pixel_ref.vsad )
     {
@@ -434,13 +438,17 @@ static int check_pixel( int cpu_ref, int cpu_new )
             int res_c, res_asm;
             set_func_name( "vsad" );
             used_asm = 1;
-            res_c   = call_c( pixel_c.vsad,   pbuf1, 16, h );
-            res_asm = call_a( pixel_asm.vsad, pbuf1, 16, h );
-            if( res_c != res_asm )
+            for( int j = 0; j < 2 && ok; j++ )
             {
-                ok = 0;
-                fprintf( stderr, "vsad: height=%d, %d != %d\n", h, res_c, res_asm );
-                break;
+                pixel *p = j ? pbuf4 : pbuf1;
+                res_c   = call_c( pixel_c.vsad,   p, 16, h );
+                res_asm = call_a( pixel_asm.vsad, p, 16, h );
+                if( res_c != res_asm )
+                {
+                    ok = 0;
+                    fprintf( stderr, "vsad: height=%d, %d != %d\n", h, res_c, res_asm );
+                    break;
+                }
             }
         }
     }
