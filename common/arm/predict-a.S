@@ -329,16 +329,16 @@ function x264_predict_8x8_vr_neon
     add         r1, #8
     mov         r12, #FDEC_STRIDE
     vld1.8      {d4,d5}, [r1,:64]
-    
+
     vext.8      q1, q2, q2, #14
     vext.8      q0, q2, q2, #15
-    
+
     vhadd.u8    q3, q2, q1
     vrhadd.u8   q2, q2, q0
     vrhadd.u8   q0, q0, q3
-    
+
     vmov        d2, d0
-    
+
     vst1.8      {d5}, [r0,:64], r12
     vuzp.8      d2, d0
     vst1.8      {d1}, [r0,:64], r12
@@ -360,18 +360,18 @@ function x264_predict_8x8_vr_neon
 function x264_predict_8x8_hd_neon
     mov         r12, #FDEC_STRIDE
     add         r1, #7
-    
+
     vld1.8      {d2,d3}, [r1]
     vext.8      q3, q1, q1, #1
     vext.8      q2, q1, q1, #2
-    
+
     vrhadd.u8   q8, q1, q3
-    
+
     vhadd.u8    q1, q2
     vrhadd.u8   q0, q1, q3
-    
+
     vzip.8      d16, d0
-    
+
     vext.8      d2, d0, d1, #6
     vext.8      d3, d0, d1, #4
     vst1.8      {d2}, [r0,:64], r12
@@ -386,7 +386,7 @@ function x264_predict_8x8_hd_neon
     vst1.8      {d3}, [r0,:64], r12
     vst1.8      {d2}, [r0,:64], r12
     vst1.8      {d16}, [r0,:64], r12
-    
+
     bx          lr
 .endfunc
 
@@ -396,18 +396,18 @@ function x264_predict_8x8_hu_neon
     vld1.8      {d7}, [r1]
     vdup.8      d6, d7[0]
     vrev64.8    d7, d7
-    
+
     vext.8      d4, d7, d6, #2
     vext.8      d2, d7, d6, #1
-    
+
     vhadd.u8    d16, d7, d4
     vrhadd.u8   d0, d2, d7
     vrhadd.u8   d1, d16, d2
-    
+
     vzip.8      d0, d1
-    
+
     vdup.16     q1, d1[3]
-    
+
     vext.8      q2, q0, q1, #2
     vext.8      q3, q0, q1, #4
     vext.8      q8, q0, q1, #6
@@ -415,7 +415,7 @@ function x264_predict_8x8_hu_neon
     vst1.8      {d4}, [r0,:64], r12
     vst1.8      {d6}, [r0,:64], r12
     vst1.8      {d16}, [r0,:64], r12
-    
+
     vst1.8      {d1}, [r0,:64], r12
     vst1.8      {d5}, [r0,:64], r12
     vst1.8      {d7}, [r0,:64], r12

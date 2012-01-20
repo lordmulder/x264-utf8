@@ -729,8 +729,8 @@ static int check_dct( int cpu_ref, int cpu_new )
         {
             int cond_a = (i < 2) ? 1 : ((j&3) == 0 || (j&3) == (i-1));
             int cond_b = (i == 0) ? 1 : !cond_a;
-            enc[0] = enc[1] = cond_a ? PIXEL_MAX : 0;
-            enc[2] = enc[3] = cond_b ? PIXEL_MAX : 0;
+            enc[0] = enc[1] = enc[4] = enc[5] = enc[8] = enc[9] = enc[12] = enc[13] = cond_a ? PIXEL_MAX : 0;
+            enc[2] = enc[3] = enc[6] = enc[7] = enc[10] = enc[11] = enc[14] = enc[15] = cond_b ? PIXEL_MAX : 0;
 
             for( int k = 0; k < 4; k++ )
                 dec[k] = PIXEL_MAX - enc[k];
@@ -755,6 +755,12 @@ static int check_dct( int cpu_ref, int cpu_new )
             { \
                 ok = 0; \
                 fprintf( stderr, #name " [FAILED]\n" ); \
+                for( int k = 0; k < size; k++ )\
+                    printf( "%d ", ((dctcoef*)t1)[k] );\
+                printf("\n");\
+                for( int k = 0; k < size; k++ )\
+                    printf( "%d ", ((dctcoef*)t2)[k] );\
+                printf("\n");\
                 break; \
             } \
             call_c( dct_c.name, t1, enc, dec ); \

@@ -138,11 +138,7 @@ cextern pd_1024
     psrad       m1, 16
     PSIGND      m1, m0
     mova      [%1], m1
-%if %4
-    por         m5, m1
-%else
-    SWAP         5, 1
-%endif
+    ACCUM      por, 5, 1, %4
 %else ; !sse4
     mova        m0, [%1]
     ABSD        m1, m0
@@ -156,11 +152,7 @@ cextern pd_1024
     psrld       m1, 16
     PSIGND      m1, m0
     mova      [%1], m1
-%if %4
-    por         m5, m1
-%else
-    SWAP         5, 1
-%endif
+    ACCUM     por, 5, 1, %4
 %endif ; cpuflag
 %endmacro
 
@@ -180,11 +172,7 @@ cextern pd_1024
     PSIGND      m3, m1
     mova      [%1], m2
     mova      [%1+mmsize], m3
-%if %4
-    por         m5, m2
-%else
-    SWAP         5, 2
-%endif
+    ACCUM      por, 5, 2, %4
     por         m5, m3
 %else ; !sse4
     QUANT_ONE_DC %1, %2, %3, %4
@@ -208,11 +196,7 @@ cextern pd_1024
     psrad       m1, 16
     PSIGND      m1, m0
     mova      [%1], m1
-%if %4
-    por         m5, m1
-%else
-    SWAP         5, 1
-%endif
+    ACCUM      por, 5, 1, %4
 %endmacro
 
 %macro QUANT_TWO_AC 4
@@ -231,11 +215,7 @@ cextern pd_1024
     PSIGND      m3, m1
     mova      [%1], m2
     mova      [%1+mmsize], m3
-%if %4
-    por         m5, m2
-%else
-    SWAP         5,  2
-%endif
+    ACCUM      por, 5, 2, %4
     por         m5, m3
 %else ; !sse4
     QUANT_ONE_AC_MMX %1, %2, %3, %4
@@ -307,11 +287,7 @@ QUANT_AC 8, 8
     pmulhuw    m0, %2   ; divide
     PSIGNW     m0, m1   ; restore sign
     mova       %1, m0   ; store
-%if %4
-    por        m5, m0
-%else
-    SWAP        5, 0
-%endif
+    ACCUM     por, 5, 0, %4
 %endmacro
 
 %macro QUANT_TWO 7
@@ -327,13 +303,8 @@ QUANT_AC 8, 8
     PSIGNW     m2, m3
     mova       %1, m0
     mova       %2, m2
-%if %7
-    por        m5, m0
+    ACCUM     por, 5, 0, %7
     por        m5, m2
-%else
-    SWAP        5,  0
-    por        m5, m2
-%endif
 %endmacro
 
 ;-----------------------------------------------------------------------------
@@ -950,10 +921,10 @@ cextern decimate_table8
 ;This is not true for score64.
 cglobal decimate_score%1, 1,3
 %ifdef PIC
-    lea r10, [decimate_table4]
-    lea r11, [decimate_mask_table4]
-    %define table r10
-    %define mask_table r11
+    lea r4, [decimate_table4]
+    lea r5, [decimate_mask_table4]
+    %define table r4
+    %define mask_table r5
 %else
     %define table decimate_table4
     %define mask_table decimate_mask_table4
@@ -1019,10 +990,10 @@ DECIMATE4x4 16
 %macro DECIMATE8x8 0
 
 %ifdef ARCH_X86_64
-cglobal decimate_score64, 1,4
+cglobal decimate_score64, 1,5
 %ifdef PIC
-    lea r10, [decimate_table8]
-    %define table r10
+    lea r4, [decimate_table8]
+    %define table r4
 %else
     %define table decimate_table8
 %endif

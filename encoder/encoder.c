@@ -61,7 +61,11 @@ static double x264_psnr( double sqe, double size )
 
 static double x264_ssim( double ssim )
 {
-    return -10.0 * log10( 1 - ssim );
+    double inv_ssim = 1 - ssim;
+    if( inv_ssim <= 0.0000000001 ) /* Max 100dB */
+        return 100;
+
+    return -10.0 * log10( inv_ssim );
 }
 
 static void x264_frame_dump( x264_t *h )
@@ -472,7 +476,6 @@ static int x264_validate_parameters( x264_t *h, int b_open )
 
     if( h->param.i_threads == X264_THREADS_AUTO )
         h->param.i_threads = x264_cpu_num_processors() * (h->param.b_sliced_threads?2:3)/2;
-    h->param.i_threads = x264_clip3( h->param.i_threads, 1, X264_THREAD_MAX );
     if( h->param.i_threads > 1 )
     {
 #if !HAVE_THREAD
@@ -487,7 +490,8 @@ static int x264_validate_parameters( x264_t *h, int b_open )
             h->param.i_threads = X264_MIN( h->param.i_threads, max_threads );
         }
     }
-    else
+    h->param.i_threads = x264_clip3( h->param.i_threads, 1, X264_THREAD_MAX );
+    if( h->param.i_threads == 1 )
         h->param.b_sliced_threads = 0;
     h->i_thread_frames = h->param.b_sliced_threads ? 1 : h->param.i_threads;
     if( h->i_thread_frames > 1 )
@@ -1177,7 +1181,6 @@ x264_t *x264_encoder_open( x264_param_t *param )
     x264_quant_init( h, h->param.cpu, &h->quantf );
     x264_deblock_init( h->param.cpu, &h->loopf, PARAM_INTERLACED );
     x264_bitstream_init( h->param.cpu, &h->bsf );
-    x264_dct_init_weights();
     if( h->param.b_cabac )
         x264_cabac_init( h );
     else
