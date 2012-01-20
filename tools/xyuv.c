@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include "unicode_support.h"
 
 #include <SDL/SDL.h>
 
@@ -166,7 +167,7 @@ int main( int argc, char **argv )
         } else if( !strcmp( argv[i], "-g" ) || !strcasecmp( argv[i], "--grid" ) ) {
             xyuv.b_grid = 1;
         } else {
-            FILE *f = fopen( argv[i], "rb" );
+            FILE *f = fopen_utf8( argv[i], "rb" );
             if( !f ) {
                 fprintf( stderr, "cannot open YUV %s\n", argv[i] );
             } else {

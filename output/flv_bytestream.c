@@ -25,6 +25,7 @@
 
 #include "output.h"
 #include "flv_bytestream.h"
+#include "unicode_support.h"
 
 uint64_t flv_dbl2int( double value )
 {
@@ -96,7 +97,7 @@ flv_buffer *flv_create_writer( const char *filename )
     if( !strcmp( filename, "-" ) )
         c->fp = stdout;
     else
-        c->fp = fopen( filename, "wb" );
+        c->fp = fopen_utf8( filename, "wb" );
     if( !c->fp )
     {
         free( c );

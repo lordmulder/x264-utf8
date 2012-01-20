@@ -25,6 +25,7 @@
  *****************************************************************************/
 
 #include "common.h"
+#include "unicode_support.h"
 
 #include <stdarg.h>
 #include <ctype.h>
@@ -1217,7 +1218,7 @@ char *x264_slurp_file( const char *filename )
     int b_error = 0;
     size_t i_size;
     char *buf;
-    FILE *fh = fopen( filename, "rb" );
+    FILE *fh = fopen_utf8( filename, "rb" );
     if( !fh )
         return NULL;
     b_error |= fseek( fh, 0, SEEK_END ) < 0;

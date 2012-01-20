@@ -26,6 +26,7 @@
 
 #include "input.h"
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, "y4m", __VA_ARGS__ )
+#include "unicode_support.h"
 
 typedef struct
 {
@@ -72,7 +73,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, c
     if( !strcmp( psz_filename, "-" ) )
         h->fh = stdin;
     else
-        h->fh = fopen(psz_filename, "rb");
+        h->fh = fopen_utf8(psz_filename, "rb");
     if( h->fh == NULL )
         return -1;
 

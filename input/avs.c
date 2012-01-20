@@ -26,6 +26,7 @@
 #include "input.h"
 #include <windows.h>
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, "avs", __VA_ARGS__ )
+#define MAX_PATH_UTF8 (MAX_PATH * 4)
 
 #define AVSC_NO_DECLSPEC
 #undef EXTERN_C
@@ -39,6 +40,8 @@
 #if HAVE_SWSCALE
 #include <libavutil/pixfmt.h>
 #endif
+
+#include "unicode_support.h"
 
 /* maximum size of the sequence of filters to try on non script files */
 #define AVS_MAX_SEQUENCE 5
@@ -132,13 +135,25 @@ static float get_avs_version( avs_hnd_t *h )
     return ret;
 }
 
-static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, cli_input_opt_t *opt )
+static int open_file( char *psz_filename_utf8, hnd_t *p_handle, video_info_t *info, cli_input_opt_t *opt )
 {
-    FILE *fh = fopen( psz_filename, "r" );
+    char psz_filename[MAX_PATH_UTF8];
+    x264_strncpy(psz_filename, psz_filename_utf8, MAX_PATH_UTF8);
+
+    FILE *fh = fopen_utf8( psz_filename_utf8, "r" );
     if( !fh )
         return -1;
     FAIL_IF_ERROR( !x264_is_regular_file( fh ), "AVS input is incompatible with non-regular file `%s'\n", psz_filename );
     fclose( fh );
+
+    /* Avisynth can't handle Unicode at all, so we will convert the path to ANSI */
+    char *short_path = path_utf8_to_ansi(psz_filename_utf8, FALSE);
+    if( short_path )
+    {
+        x264_strncpy(psz_filename, short_path, MAX_PATH_UTF8);
+        free(short_path); short_path = NULL;
+    }
+    x264_cli_log( "avs", X264_LOG_INFO, "Source: %s\n", psz_filename );
 
     avs_hnd_t *h = malloc( sizeof(avs_hnd_t) );
     if( !h )

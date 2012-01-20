@@ -25,6 +25,7 @@
  *****************************************************************************/
 
 #include "output.h"
+#include "unicode_support.h"
 #include <gpac/isomedia.h>
 
 #if HAVE_GF_MALLOC
@@ -35,6 +36,14 @@
 #define free gf_free
 #define realloc gf_realloc
 #endif
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#define MAX_PATH 260
+#endif
+
+#define MAX_PATH_UTF8 (MAX_PATH * 4)
 
 typedef struct
 {
@@ -168,16 +177,30 @@ static int close_file( hnd_t handle, int64_t largest_pts, int64_t second_largest
     return 0;
 }
 
-static int open_file( char *psz_filename, hnd_t *p_handle, cli_output_opt_t *opt )
+static int open_file( char *psz_filename_utf8, hnd_t *p_handle, cli_output_opt_t *opt )
 {
+    char psz_filename[MAX_PATH_UTF8];
+    x264_strncpy(psz_filename, psz_filename_utf8, MAX_PATH_UTF8);
+
     mp4_hnd_t *p_mp4;
 
     *p_handle = NULL;
-    FILE *fh = fopen( psz_filename, "w" );
+    FILE *fh = fopen_utf8( psz_filename_utf8, "w" );
     if( !fh )
         return -1;
     FAIL_IF_ERR( !x264_is_regular_file( fh ), "mp4", "MP4 output is incompatible with non-regular file `%s'\n", psz_filename )
     fclose( fh );
+
+#ifdef _WIN32
+    /* GPAC can't handle Unicode at all, so we will convert the path to ANSI */
+    char *short_path = path_utf8_to_ansi(psz_filename_utf8, TRUE);
+    if( short_path )
+    {
+        x264_strncpy(psz_filename, short_path, MAX_PATH_UTF8);
+        free(short_path); short_path = NULL;
+    }
+    x264_cli_log( "mp4", X264_LOG_INFO, "Output: %s\n", psz_filename );
+#endif //_WIN32
 
     if( !(p_mp4 = malloc( sizeof(mp4_hnd_t) )) )
         return -1;

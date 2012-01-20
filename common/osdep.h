@@ -34,6 +34,7 @@
 #include <inttypes.h>
 
 #include "config.h"
+#include "unicode_support.h"
 
 #if !HAVE_LOG2F
 #define log2f(x) (logf(x)/0.693147180559945f)
@@ -329,7 +330,7 @@ static inline uint8_t x264_is_regular_file( FILE *filehandle )
 static inline uint8_t x264_is_regular_file_path( const char *filename )
 {
     struct stat file_stat;
-    if( stat( filename, &file_stat ) )
+    if( stat_utf8( filename, &file_stat ) )
         return -1;
     return S_ISREG( file_stat.st_mode );
 }

@@ -25,6 +25,7 @@
 
 #include "input.h"
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, "timecode", __VA_ARGS__ )
+#include "unicode_support.h"
 
 typedef struct
 {
@@ -368,7 +369,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, c
     timecode_input.picture_alloc = h->input.picture_alloc;
     timecode_input.picture_clean = h->input.picture_clean;
 
-    tcfile_in = fopen( psz_filename, "rb" );
+    tcfile_in = fopen_utf8( psz_filename, "rb" );
     FAIL_IF_ERROR( !tcfile_in, "can't open `%s'\n", psz_filename )
     else if( !x264_is_regular_file( tcfile_in ) )
     {

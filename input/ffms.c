@@ -36,7 +36,10 @@
 #include <windows.h>
 #else
 #define SetConsoleTitle(t)
+#define MAX_PATH 260
 #endif
+
+#define MAX_PATH_UTF8 (MAX_PATH * 4)
 
 typedef struct
 {
@@ -79,10 +82,28 @@ static int handle_jpeg( int csp, int *fullrange )
 
 static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, cli_input_opt_t *opt )
 {
+    char index_file_ansi[MAX_PATH_UTF8];
+    x264_strncpy(index_file_ansi, opt->index_file, MAX_PATH_UTF8);
+
     ffms_hnd_t *h = calloc( 1, sizeof(ffms_hnd_t) );
     if( !h )
         return -1;
+
+#ifdef _WIN32
+    FFMS_Init( 0, 1 );
+#ifdef __MINGW32__
+    /*FFMS2 UTF-8 support is broken for the index file on MinGW*/
+    char *temp = path_utf8_to_ansi(opt->index_file, TRUE);
+    if( temp )
+    {
+        x264_strncpy(index_file_ansi, temp, MAX_PATH_UTF8);
+        free(temp); temp = NULL;
+    }
+#endif
+#else
     FFMS_Init( 0, 0 );
+#endif
+
     FFMS_ErrorInfo e;
     e.BufferSize = 0;
     int seekmode = opt->seek ? FFMS_SEEK_NORMAL : FFMS_SEEK_LINEAR_NO_RW;
@@ -91,9 +112,9 @@ static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, c
     if( opt->index_file )
     {
         struct stat index_s, input_s;
-        if( !stat( opt->index_file, &index_s ) && !stat( psz_filename, &input_s ) &&
-            input_s.st_mtime < index_s.st_mtime )
-            idx = FFMS_ReadIndex( opt->index_file, &e );
+        if( !stat_utf8( opt->index_file, &index_s ) && !stat_utf8( psz_filename, &input_s ) &&
+            input_s.st_mtime < index_s.st_mtime && index_s.st_size > 16)
+            idx = FFMS_ReadIndex( index_file_ansi, &e );
     }
     if( !idx )
     {
@@ -105,7 +126,7 @@ static int open_file( char *psz_filename, hnd_t *p_handle, video_info_t *info, c
         else
             idx = FFMS_MakeIndex( psz_filename, 0, 0, NULL, NULL, 0, NULL, NULL, &e );
         FAIL_IF_ERROR( !idx, "could not create index\n" )
-        if( opt->index_file && FFMS_WriteIndex( opt->index_file, idx, &e ) )
+        if( opt->index_file && FFMS_WriteIndex( index_file_ansi, idx, &e ) )
             x264_cli_log( "ffms", X264_LOG_WARNING, "could not write index file\n" );
     }
 

@@ -25,12 +25,13 @@
  *****************************************************************************/
 
 #include "output.h"
+#include "unicode_support.h"
 
 static int open_file( char *psz_filename, hnd_t *p_handle, cli_output_opt_t *opt )
 {
     if( !strcmp( psz_filename, "-" ) )
         *p_handle = stdout;
-    else if( !(*p_handle = fopen( psz_filename, "w+b" )) )
+    else if( !(*p_handle = fopen_utf8( psz_filename, "w+b" )) )
         return -1;
 
     return 0;

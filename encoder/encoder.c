@@ -32,6 +32,7 @@
 #include "ratecontrol.h"
 #include "macroblock.h"
 #include "me.h"
+#include "unicode_support.h"
 
 #if HAVE_VISUALIZE
 #include "common/visualize.h"
@@ -70,7 +71,7 @@ static double x264_ssim( double ssim )
 
 static void x264_frame_dump( x264_t *h )
 {
-    FILE *f = fopen( h->param.psz_dump_yuv, "r+b" );
+    FILE *f = fopen_utf8( h->param.psz_dump_yuv, "r+b" );
     if( !f )
         return;
 
@@ -1299,7 +1300,7 @@ x264_t *x264_encoder_open( x264_param_t *param )
     if( h->param.psz_dump_yuv )
     {
         /* create or truncate the reconstructed video file */
-        FILE *f = fopen( h->param.psz_dump_yuv, "w" );
+        FILE *f = fopen_utf8( h->param.psz_dump_yuv, "w" );
         if( !f )
         {
             x264_log( h, X264_LOG_ERROR, "dump_yuv: can't write to %s\n", h->param.psz_dump_yuv );

@@ -25,6 +25,7 @@
 
 #include "output.h"
 #include "matroska_ebml.h"
+#include "unicode_support.h"
 
 #define CLSIZE 1048576
 #define CHECK(x)\
@@ -307,7 +308,7 @@ mk_writer *mk_create_writer( const char *filename )
     if( !strcmp( filename, "-" ) )
         w->fp = stdout;
     else
-        w->fp = fopen( filename, "wb" );
+        w->fp = fopen_utf8( filename, "wb" );
     if( !w->fp )
     {
         mk_destroy_contexts( w );

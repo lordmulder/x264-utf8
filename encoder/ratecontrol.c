@@ -33,6 +33,7 @@
 #include "common/common.h"
 #include "ratecontrol.h"
 #include "me.h"
+#include "unicode_support.h"
 
 typedef struct
 {
@@ -726,7 +727,7 @@ int x264_ratecontrol_new( x264_t *h )
             char *mbtree_stats_in = x264_strcat_filename( h->param.rc.psz_stat_in, ".mbtree" );
             if( !mbtree_stats_in )
                 return -1;
-            rc->p_mbtree_stat_file_in = fopen( mbtree_stats_in, "rb" );
+            rc->p_mbtree_stat_file_in = fopen_utf8( mbtree_stats_in, "rb" );
             x264_free( mbtree_stats_in );
             if( !rc->p_mbtree_stat_file_in )
             {
@@ -991,7 +992,7 @@ parse_error:
         if( !rc->psz_stat_file_tmpname )
             return -1;
 
-        rc->p_stat_file_out = fopen( rc->psz_stat_file_tmpname, "wb" );
+        rc->p_stat_file_out = fopen_utf8( rc->psz_stat_file_tmpname, "wb" );
         if( rc->p_stat_file_out == NULL )
         {
             x264_log( h, X264_LOG_ERROR, "ratecontrol_init: can't open stats file\n" );
@@ -1009,7 +1010,7 @@ parse_error:
             if( !rc->psz_mbtree_stat_file_tmpname || !rc->psz_mbtree_stat_file_name )
                 return -1;
 
-            rc->p_mbtree_stat_file_out = fopen( rc->psz_mbtree_stat_file_tmpname, "wb" );
+            rc->p_mbtree_stat_file_out = fopen_utf8( rc->psz_mbtree_stat_file_tmpname, "wb" );
             if( rc->p_mbtree_stat_file_out == NULL )
             {
                 x264_log( h, X264_LOG_ERROR, "ratecontrol_init: can't open mbtree stats file\n" );
@@ -1186,7 +1187,7 @@ void x264_ratecontrol_delete( x264_t *h )
         b_regular_file = x264_is_regular_file( rc->p_stat_file_out );
         fclose( rc->p_stat_file_out );
         if( h->i_frame >= rc->num_entries && b_regular_file )
-            if( rename( rc->psz_stat_file_tmpname, h->param.rc.psz_stat_out ) != 0 )
+            if( rename_utf8( rc->psz_stat_file_tmpname, h->param.rc.psz_stat_out ) != 0 )
             {
                 x264_log( h, X264_LOG_ERROR, "failed to rename \"%s\" to \"%s\"\n",
                           rc->psz_stat_file_tmpname, h->param.rc.psz_stat_out );
@@ -1198,7 +1199,7 @@ void x264_ratecontrol_delete( x264_t *h )
         b_regular_file = x264_is_regular_file( rc->p_mbtree_stat_file_out );
         fclose( rc->p_mbtree_stat_file_out );
         if( h->i_frame >= rc->num_entries && b_regular_file )
-            if( rename( rc->psz_mbtree_stat_file_tmpname, rc->psz_mbtree_stat_file_name ) != 0 )
+            if( rename_utf8( rc->psz_mbtree_stat_file_tmpname, rc->psz_mbtree_stat_file_name ) != 0 )
             {
                 x264_log( h, X264_LOG_ERROR, "failed to rename \"%s\" to \"%s\"\n",
                           rc->psz_mbtree_stat_file_tmpname, rc->psz_mbtree_stat_file_name );

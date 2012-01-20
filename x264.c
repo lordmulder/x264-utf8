@@ -35,6 +35,7 @@
 #include "input/input.h"
 #include "output/output.h"
 #include "filters/filters.h"
+#include "unicode_support.h"
 
 #define FAIL_IF_ERROR( cond, ... ) FAIL_IF_ERR( cond, "x264", __VA_ARGS__ )
 
@@ -266,7 +267,7 @@ static void print_version_info()
 #endif
 }
 
-int main( int argc, char **argv )
+static int x264_main( int argc, char **argv )
 {
     x264_param_t param;
     cli_opt_t opt = {0};
@@ -1076,7 +1077,7 @@ static int select_input( const char *demuxer, char *used_demuxer, char *filename
     b_regular = b_regular && x264_is_regular_file_path( filename );
     if( b_regular )
     {
-        FILE *f = fopen( filename, "r" );
+        FILE *f = fopen_utf8( filename, "r" );
         if( f )
         {
             b_regular = x264_is_regular_file( f );
@@ -1320,7 +1321,7 @@ static int parse( int argc, char **argv, x264_param_t *param, cli_opt_t *opt )
                 input_opt.index_file = optarg;
                 break;
             case OPT_QPFILE:
-                opt->qpfile = fopen( optarg, "rb" );
+                opt->qpfile = fopen_utf8( optarg, "rb" );
                 FAIL_IF_ERROR( !opt->qpfile, "can't open qpfile `%s'\n", optarg )
                 if( !x264_is_regular_file( opt->qpfile ) )
                 {
@@ -1379,7 +1380,7 @@ static int parse( int argc, char **argv, x264_param_t *param, cli_opt_t *opt )
                 tcfile_name = optarg;
                 break;
             case OPT_TCFILE_OUT:
-                opt->tcfile_out = fopen( optarg, "wb" );
+                opt->tcfile_out = fopen_utf8( optarg, "wb" );
                 FAIL_IF_ERROR( !opt->tcfile_out, "can't open `%s'\n", optarg )
                 break;
             case OPT_TIMEBASE:
@@ -1915,3 +1916,27 @@ fail:
 
     return retval;
 }
+
+#ifdef _WIN32
+int main( int argc, char **argv )
+{
+  int x264_argc;
+  char **x264_argv;
+  int exit_code;
+
+  UINT old_cp = GetConsoleOutputCP();
+  SetConsoleOutputCP(CP_UTF8);
+
+  init_commandline_arguments_utf8(&x264_argc, &x264_argv);
+  exit_code = x264_main(x264_argc, x264_argv);
+  free_commandline_arguments_utf8(&x264_argc, &x264_argv);
+
+  SetConsoleOutputCP(old_cp);
+  return exit_code;
+}
+#else
+int main( int argc, char **argv )
+{
+    return x264_main(argc, argv);
+}
+#endif
